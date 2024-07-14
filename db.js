@@ -22,34 +22,35 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
 app.use(cors());
 
-const connectToMongodb = async () => {
-  try {
-    // await mongoose.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
-    await mongoose.connect(mongoURL, { connectTimeoutMS: 10000000 });
-    // await mongoose.connect(mongoURL);
-    console.log("Connected to MongoDB successfully");
-  } catch (error) {
-    console.error("Error connecting to MongoDB:", error.message);
-    console.error("Error==>", error);
-    
-  }
-};
-
 // const connectToMongodb = async () => {
 //   try {
-//     console.log("Attempting to connect to MongoDB...");
-//     await mongoose.connect(mongoURL, {
-//       useNewUrlParser: true,
-//       useUnifiedTopology: true,
-//       serverSelectionTimeoutMS: 30000, // 30 seconds
-//       connectTimeoutMS: 30000 // 30 seconds
-//     });
+//     // await mongoose.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
+//     await mongoose.connect(mongoURL, { connectTimeoutMS: 10000000 });
+//     // await mongoose.connect(mongoURL);
 //     console.log("Connected to MongoDB successfully");
 //   } catch (error) {
 //     console.error("Error connecting to MongoDB:", error.message);
-//     process.exit(1);  // Exit if connection fails
+//     console.error("Error==>", error);
+    
 //   }
 // };
+
+const connectToMongodb = async () => {
+  try {
+    console.log("Attempting to connect to MongoDB...");
+    await mongoose.connect(mongoURL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000, // 30 seconds
+      connectTimeoutMS: 30000 // 30 seconds
+    });
+    console.log("Connected to MongoDB successfully");
+  } catch (error) {
+    console.error("Error connecting to MongoDB:", error.message);
+    process.exit(1);  // Exit if connection fails
+  }
+};
+
 //Availale routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/notes', require('./routes/Teamwork'));
