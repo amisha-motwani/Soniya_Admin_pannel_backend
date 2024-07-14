@@ -43,14 +43,8 @@ const NotesSchema = new Schema({
   Readymade_collar: {
     type: Boolean,
   },
-  full_sleeves: {
-    type: Boolean,
-  },
-  half_sleeves: {
-    type: Boolean,
-  },
   printing_charges: {
-    type: Boolean,
+    type: String
   },
   printing_area: {
     type: String,
