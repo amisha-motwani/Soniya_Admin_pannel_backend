@@ -3,8 +3,8 @@ const bodyParser = require('body-parser');
 // const mongoURL = "mongodb+srv://eramishamotwani:ecmz5qsnxc4JNTvT@cluster0.7zwofoh.mongodb.net/?retryWrites=true&w=majority";
 
 // const mongoURL = "mongodb+srv://amisha_motwani:/sAmisha@1343@cluster0.7zwofoh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-// 
-const mongoURL = "mongodb+srv://amisha_motwani:Amisha%401343@cluster0.7zwofoh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+ 
+const mongoURL = "mongodb+srv://amisha_motwani:Amisha%401343@cluster0.7zwofoh.mongodb.net/SoniyaAdmin?retryWrites=true&w=majority&appName=Cluster0";
 
 const express = require('express');
 const app = express();
