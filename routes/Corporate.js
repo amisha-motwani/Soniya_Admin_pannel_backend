@@ -56,7 +56,6 @@ router.post(
     body("printing_charges").optional(),
     body("printing_area").optional(),
     body("sleeves_type").optional(),
-
   ],
 
   async (req, res) => {
@@ -76,7 +75,6 @@ router.post(
         printing_area,
         sleeves_type,
         size,
-        
       } = req.body;
 
       // Get the path of the uploaded file from multer
@@ -103,9 +101,7 @@ router.post(
         Readymade_collar,
         printing_charges,
         printing_area,
-        sleeves_type,       
-        full_sleeves,
-        half_sleeves,
+        sleeves_type,
         size,
 
         image: imagePath,
@@ -131,7 +127,7 @@ router.put("/update/Corporatewear/:id", getMiddleware, async (req, res) => {
       price,
       color,
       fabric,
-      image,      
+      image,
       Polo_collar,
       Round_neck,
       Cloth_collar,
@@ -139,10 +135,7 @@ router.put("/update/Corporatewear/:id", getMiddleware, async (req, res) => {
       printing_charges,
       printing_area,
       sleeves_type,
-      full_sleeves,
-      half_sleeves,
       size,
-      
     } = req.body;
     //Yeh line ek naya empty object newNote banata hai, jisme hum update karne wale note ki nayi values store karenge.
     const newNote = {};
@@ -185,16 +178,11 @@ router.put("/update/Corporatewear/:id", getMiddleware, async (req, res) => {
     if (printing_area) {
       newNote.printing_area = printing_area;
     }
-    if (full_sleeves !== undefined) {
-      newNote.full_sleeves = full_sleeves;
-    }
-    if (half_sleeves !== undefined) {
-      newNote.half_sleeves = half_sleeves;
-    }
+
     if (sleeves_type) {
       newNote.sleeves_type = sleeves_type;
     }
-   
+
     if (req.file) newNote.image = `uploads/${req.file.filename}`;
     //Find the note to be updated and update it
     let note = await CorporateSchema.findById(req.params.id); //params me jo id hai
@@ -203,7 +191,6 @@ router.put("/update/Corporatewear/:id", getMiddleware, async (req, res) => {
       return res.status(404).send("Not Found");
     }
 
-    
     note = await CorporateSchema.findByIdAndUpdate(
       req.params.id,
       { $set: newNote },
