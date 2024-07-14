@@ -32,8 +32,6 @@ app.use(cors());
 //     console.error("Error connecting to MongoDB:", error.message);
 //   }
 // };
-
-
 const connectToMongodb = async () => {
   try {
     console.log("Attempting to connect to MongoDB...");
@@ -49,7 +47,6 @@ const connectToMongodb = async () => {
     process.exit(1);  // Exit if connection fails
   }
 };
-
 //Availale routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/notes', require('./routes/Teamwork'));
