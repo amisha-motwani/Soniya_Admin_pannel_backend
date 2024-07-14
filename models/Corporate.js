@@ -49,7 +49,7 @@ const NotesSchema = new Schema({
     type: String,
   },
   printing_charges: {
-    type: Boolean,
+    type: String,
   },
   printing_area: {
     type: String,
