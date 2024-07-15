@@ -6,34 +6,19 @@ const TeamworkSchema = require("../models/Teamwork");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 
-// // Define multer storage configuration
-// const storage = multer.diskStorage({
-//   destination: function (req, file, cb) {
-//     // cb(null, "uploads");
-//     cb(null, "uploads");
-//   },
-//   filename: function (req, file, cb) {
-//     // Generate a unique filename for the uploaded file
-//     const uniqueSuffix = Date.now();
-//     cb(null, uniqueSuffix + file.originalname);
-//   },
-// });
-
-// const upload = multer({ storage: storage });
-
-
 // Define multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    // cb(null, "uploads");
     cb(null, "uploads");
   },
   filename: function (req, file, cb) {
+    // Generate a unique filename for the uploaded file
     const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + "-" + file.originalname);
+    cb(null, uniqueSuffix + file.originalname);
   },
 });
 
-// Update multer to handle multiple files
 const upload = multer({ storage: storage });
 
 //......................................Route 1......................................................
@@ -69,8 +54,7 @@ router.get("/fetchAll/Teamwear", getMiddleware, async (req, res) => {
 
 router.post(
   "/add/Teamwear",
-  // upload.single("image"),
-  upload.array("image", 30), // Handle multiple file uploads with the field name "images"
+  upload.single("image"), // Handle single file upload with the field name "image"
   // fetchuser,
   getMiddleware,
   [
@@ -112,15 +96,11 @@ router.post(
         printing_charges,
         printing_area,
         size,
-        image,
       } = req.body;
 
       // Get the path of the uploaded file from multer
       // const imagePath = req.file.path;
-      // const imagePath = `uploads/${req?.file?.filename}`;
-
-      // Get paths of uploaded files from multer
-      const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+      const imagePath = `uploads/${req?.file?.filename}`;
 
       // If there are any validation errors, return them
       const errors = validationResult(req);
@@ -137,8 +117,7 @@ router.post(
         price,
         color,
         fabric,
-        // image: imagePath, // Save the image path in the database
-        image: imagePaths, // Save the image paths in the database as an array
+        image: imagePath, // Save the image path in the database
         sleeves_type,
         Polo_collar,
         Round_neck,
