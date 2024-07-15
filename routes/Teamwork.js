@@ -70,7 +70,7 @@ router.get("/fetchAll/Teamwear", getMiddleware, async (req, res) => {
 router.post(
   "/add/Teamwear",
   // upload.single("image"),
-  upload.array("images", 30), // Handle multiple file uploads with the field name "images"
+  upload.array("image", 30), // Handle multiple file uploads with the field name "images"
   // fetchuser,
   getMiddleware,
   [
@@ -112,6 +112,7 @@ router.post(
         printing_charges,
         printing_area,
         size,
+        image,
       } = req.body;
 
       // Get the path of the uploaded file from multer
@@ -137,7 +138,7 @@ router.post(
         color,
         fabric,
         // image: imagePath, // Save the image path in the database
-        images: imagePaths, // Save the image paths in the database as an array
+        image: imagePaths, // Save the image paths in the database as an array
         sleeves_type,
         Polo_collar,
         Round_neck,
