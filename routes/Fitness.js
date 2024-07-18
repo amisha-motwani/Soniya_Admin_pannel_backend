@@ -10,11 +10,9 @@ const Fitness = require("../models/Fitness");
 // Define multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // cb(null, "uploads");
     cb(null, "uploads");
   },
   filename: function (req, file, cb) {
-    // Generate a unique filename for the uploaded file
     const uniqueSuffix = Date.now();
     cb(null, uniqueSuffix + file.originalname);
   },
@@ -39,7 +37,7 @@ router.get("/fetchAll/Fitnesswear", getMiddleware, async (req, res) => {
 //-------------Add a new note using Post request: "localhost:5000/api/notes/addnote"-----------------------
 router.post(
   "/add/Fitnesswear",
-  upload.single("image"), // Handle single file upload with the field name "image"
+  upload.array("image", 10),
   getMiddleware,
   [
     body("title", "Enter a valid title").isLength({ min: 3 }),
@@ -80,12 +78,12 @@ router.post(
         printing_area,
         full_sleeves,
         half_sleeves,
-
       } = req.body;
 
-      // Get the path of the uploaded file from multer
-      // const imagePath = req.file.path;
-      const imagePath = `uploads/${req?.file?.filename}`;
+      // Get the paths of the uploaded files from multer
+      const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+      // Format image paths as a comma-separated string
+      const imageString = imagePaths.join(", ");
 
       //If there is any error occured, return end request and the validation errors
       const errors = validationResult(req);
@@ -111,7 +109,7 @@ router.post(
         full_sleeves,
         half_sleeves,
         size,
-        image: imagePath,
+        image: imageString,
       });
       const savedNotes = await note.save();
 
@@ -144,8 +142,7 @@ router.put("/update/Fitnesswear/:id", getMiddleware, async (req, res) => {
       printing_area,
       full_sleeves,
       half_sleeves,
-     size,
-      
+      size,
     } = req.body;
     //Yeh line ek naya empty object newNote banata hai, jisme hum update karne wale note ki nayi values store karenge.
     const newNote = {};
@@ -197,7 +194,7 @@ router.put("/update/Fitnesswear/:id", getMiddleware, async (req, res) => {
     if (sleeves_type) {
       newNote.sleeves_type = sleeves_type;
     }
-   
+
     if (req.file) newNote.image = `uploads/${req.file.filename}`;
 
     //Find the note to be updated and update it
