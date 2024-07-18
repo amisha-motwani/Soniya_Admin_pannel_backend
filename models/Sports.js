@@ -14,11 +14,12 @@ const NotesSchema = new Schema({
     type: String,
     require: true,
   },
-  fabric: {
+  price: {
     type: String,
     require: true,
   },
-  price: {
+
+  fabric: {
     type: String,
     require: true,
   },
@@ -38,26 +39,28 @@ const NotesSchema = new Schema({
   Cloth_collar: {
     type: Boolean,
   },
+  
   Readymade_collar: {
     type: Boolean,
   },
   printing_charges: {
-    type: String,
+    type: String
   },
   printing_area: {
+    type: String,
+  },
+  sleeves_type: {
     type: String,
   },
   size: {
     type: String,
     require: true,
   },
-  sleeves_type: {
-    type: String,
-  },
+
   date: {
     type: Date,
     default: Date.now,
   },
 });
 
-module.exports = mongoose.model("Sportswear", NotesSchema);
+module.exports = mongoose.model("Fitness", NotesSchema);
