@@ -8,11 +8,9 @@ const multer = require("multer");
 // Define multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // cb(null, "uploads");
     cb(null, "uploads");
   },
   filename: function (req, file, cb) {
-    // Generate a unique filename for the uploaded file
     const uniqueSuffix = Date.now();
     cb(null, uniqueSuffix + file.originalname);
   },
@@ -37,7 +35,7 @@ router.get("/fetchAll/Corporatewear", getMiddleware, async (req, res) => {
 //-------------Add a new note using Post request: "localhost:5000/api/notes/addnote"-----------------------
 router.post(
   "/add/Corporatewear",
-  upload.single("image"), // Handle single file upload with the field name "image"
+  upload.array("image", 10),
   getMiddleware,
   [
     body("title", "Enter a valid title").isLength({ min: 3 }),
@@ -77,9 +75,10 @@ router.post(
         size,
       } = req.body;
 
-      // Get the path of the uploaded file from multer
-      // const imagePath = req.file.path;
-      const imagePath = `uploads/${req?.file?.filename}`;
+      // Get the paths of the uploaded files from multer
+      const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+      // Format image paths as a comma-separated string
+      const imageString = imagePaths.join(", ");
 
       //If there is any error occured, return end request and the validation errors
       const errors = validationResult(req);
@@ -103,8 +102,7 @@ router.post(
         printing_area,
         sleeves_type,
         size,
-
-        image: imagePath,
+        image: imageString,
       });
       const savedNotes = await note.save();
 
