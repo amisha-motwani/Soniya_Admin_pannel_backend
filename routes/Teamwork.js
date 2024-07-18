@@ -6,14 +6,13 @@ const TeamworkSchema = require("../models/Teamwork");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 
+
 // Define multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // cb(null, "uploads");
     cb(null, "uploads");
   },
   filename: function (req, file, cb) {
-    // Generate a unique filename for the uploaded file
     const uniqueSuffix = Date.now();
     cb(null, uniqueSuffix + file.originalname);
   },
@@ -54,18 +53,15 @@ router.get("/fetchAll/Teamwear", getMiddleware, async (req, res) => {
 
 router.post(
   "/add/Teamwear",
-  upload.single("image"), // Handle single file upload with the field name "image"
+  // upload.single("image"), 
+  upload.array("image", 10), 
   // fetchuser,
   getMiddleware,
   [
     body("title", "Enter a valid title").isLength({ min: 3 }),
     body("fabric", "Please enter fabric").isLength({ min: 1 }),
-    body("description", "description must be atleast 5 characters").isLength({
-      min: 5,
-    }),
-    body("size", "Please choose any size").isLength({
-      min: 1,
-    }),
+    body("description", "description must be atleast 5 characters").isLength({min: 5}),
+    body("size", "Please choose any size").isLength({min: 1}),
     body("price", "Enter a price").isLength({ min: 1 }),
     body("color", "Please choose atleast 1 color").isLength({ min: 3 }),
     body("Polo_collar").optional(),
@@ -98,10 +94,11 @@ router.post(
         size,
       } = req.body;
 
-      // Get the path of the uploaded file from multer
-      // const imagePath = req.file.path;
-      const imagePath = `uploads/${req?.file?.filename}`;
-
+       // Get the paths of the uploaded files from multer
+       const imagePaths = req.files.map(file => `uploads/${file.filename}`);
+       // Format image paths as a comma-separated string
+       const imageString = imagePaths.join(', ');
+ 
       // If there are any validation errors, return them
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -117,7 +114,7 @@ router.post(
         price,
         color,
         fabric,
-        image: imagePath, // Save the image path in the database
+        image: imageString,
         sleeves_type,
         Polo_collar,
         Round_neck,
