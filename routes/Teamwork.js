@@ -6,7 +6,6 @@ const TeamworkSchema = require("../models/Teamwork");
 const { body, validationResult } = require("express-validator");
 const multer = require("multer");
 
-
 // Define multer storage configuration
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -53,15 +52,17 @@ router.get("/fetchAll/Teamwear", getMiddleware, async (req, res) => {
 
 router.post(
   "/add/Teamwear",
-  // upload.single("image"), 
-  upload.array("image", 10), 
+  // upload.single("image"),
+  upload.array("image", 10),
   // fetchuser,
   getMiddleware,
   [
     body("title", "Enter a valid title").isLength({ min: 3 }),
     body("fabric", "Please enter fabric").isLength({ min: 1 }),
-    body("description", "description must be atleast 5 characters").isLength({min: 5}),
-    body("size", "Please choose any size").isLength({min: 1}),
+    body("description", "description must be atleast 5 characters").isLength({
+      min: 5,
+    }),
+    body("size", "Please choose any size").isLength({ min: 1 }),
     body("price", "Enter a price").isLength({ min: 1 }),
     body("color", "Please choose atleast 1 color").isLength({ min: 3 }),
     body("Polo_collar").optional(),
@@ -71,7 +72,6 @@ router.post(
     body("printing_charges").optional(),
     body("printing_area").optional(),
     body("sleeves_type").optional(),
-
   ],
   async (req, res) => {
     try {
@@ -94,11 +94,11 @@ router.post(
         size,
       } = req.body;
 
-       // Get the paths of the uploaded files from multer
-       const imagePaths = req.files.map(file => `uploads/${file.filename}`);
-       // Format image paths as a comma-separated string
-       const imageString = imagePaths.join(', ');
- 
+      // Get the paths of the uploaded files from multer
+      const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+      // Format image paths as a comma-separated string
+      const imageString = imagePaths.join(", ");
+
       // If there are any validation errors, return them
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -145,16 +145,16 @@ router.post(
 router.put(
   "/update/Teamwear/:id",
   getMiddleware,
-  upload.single("image"),
+  upload.array("image", 10),
   async (req, res) => {
     try {
+
       const {
         title,
         description,
         price,
         color,
         fabric,
-        image,
         sleeves_type,
         Polo_collar,
         Round_neck,
@@ -178,19 +178,31 @@ router.put(
       if (Polo_collar !== undefined) newNote.Polo_collar = Polo_collar;
       if (Round_neck !== undefined) newNote.Round_neck = Round_neck;
       if (Cloth_collar !== undefined) newNote.Cloth_collar = Cloth_collar;
-      if (Readymade_collar !== undefined) newNote.Readymade_collar = Readymade_collar;
-      if (printing_charges !== undefined) newNote.printing_charges = printing_charges;
+      if (Readymade_collar !== undefined)
+        newNote.Readymade_collar = Readymade_collar;
+      if (printing_charges !== undefined)
+        newNote.printing_charges = printing_charges;
       if (printing_area) newNote.printing_area = printing_area;
       if (full_sleeves !== undefined) newNote.full_sleeves = full_sleeves;
       if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
       if (sleeves_type) newNote.sleeves_type = sleeves_type;
       if (req.file) newNote.image = `uploads/${req.file.filename}`;
 
+      // Get the paths of the uploaded files from multer
+      if (req.files && req.files.length > 0) {
+        const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+        // Format image paths as a comma-separated string
+        const imageString = imagePaths.join(", ");
+        newNote.image = imageString;
+      }
+      
+      // Find the existing note by ID
       let note = await TeamworkSchema.findById(req.params.id);
       if (!note) {
         return res.status(404).send("Not Found");
       }
-
+      
+      // Update the note with new values
       note = await TeamworkSchema.findByIdAndUpdate(
         req.params.id,
         { $set: newNote },
@@ -207,7 +219,6 @@ router.put(
     }
   }
 );
-
 
 //----------------------Route 3-----------------------
 //-----this route 3 is to delete the note : "localhost:5000/api/notes/deletenote/:id"
