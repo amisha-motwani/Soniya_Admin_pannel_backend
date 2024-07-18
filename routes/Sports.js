@@ -145,102 +145,75 @@ router.post(
 router.put(
   "/update/Sportswear/:id",
   getMiddleware,
-  upload.single("image"),
+  upload.array("image", 10),
   async (req, res) => {
     try {
-      //Extract title, description, tag from req.body by using object destruction
       const {
         title,
         description,
         price,
         color,
         fabric,
-        image,
         sleeves_type,
         Polo_collar,
         Round_neck,
         Cloth_collar,
         Readymade_collar,
-        printing_charges,
-        printing_area,
         full_sleeves,
         half_sleeves,
+        printing_charges,
+        printing_area,
         size,
       } = req.body;
-      //Yeh line ek naya empty object newNote banata hai, jisme hum update karne wale note ki nayi values store karenge.
+
       const newNote = {};
 
-      //agar title hai to newNote ke title ko title kardo,
-
-      if (title) {
-        newNote.title = title;
-      }
-      if (description) {
-        newNote.description = description;
-      }
-      if (fabric) {
-        newNote.fabric = fabric;
-      }
-      if (price) {
-        newNote.price = price;
-      }
-      if (color) {
-        newNote.color = color;
-      }
-      if (size) {
-        newNote.size = size;
-      }
-      if (Polo_collar !== undefined) {
-        newNote.Polo_collar = Polo_collar;
-      }
-      if (Round_neck !== undefined) {
-        newNote.Round_neck = Round_neck;
-      }
-      if (Cloth_collar !== undefined) {
-        newNote.Cloth_collar = Cloth_collar;
-      }
-      if (Readymade_collar !== undefined) {
+      if (title) newNote.title = title;
+      if (description) newNote.description = description;
+      if (fabric) newNote.fabric = fabric;
+      if (price) newNote.price = price;
+      if (color) newNote.color = color;
+      if (size) newNote.size = size;
+      if (Polo_collar !== undefined) newNote.Polo_collar = Polo_collar;
+      if (Round_neck !== undefined) newNote.Round_neck = Round_neck;
+      if (Cloth_collar !== undefined) newNote.Cloth_collar = Cloth_collar;
+      if (Readymade_collar !== undefined)
         newNote.Readymade_collar = Readymade_collar;
-      }
-      if (printing_charges !== undefined) {
+      if (printing_charges !== undefined)
         newNote.printing_charges = printing_charges;
-      }
-      if (printing_area) {
-        newNote.printing_area = printing_area;
-      }
-      if (full_sleeves !== undefined) {
-        newNote.full_sleeves = full_sleeves;
-      }
-      if (half_sleeves !== undefined) {
-        newNote.half_sleeves = half_sleeves;
-      }
-      if (sleeves_type) {
-        newNote.sleeves_type = sleeves_type;
-      }
-
+      if (printing_area) newNote.printing_area = printing_area;
+      if (full_sleeves !== undefined) newNote.full_sleeves = full_sleeves;
+      if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
+      if (sleeves_type) newNote.sleeves_type = sleeves_type;
       if (req.file) newNote.image = `uploads/${req.file.filename}`;
 
-      //Find the note to be updated and update it
-      let note = await SportswearSchema.findById(req.params.id); //params me jo id hai
+      // Get the paths of the uploaded files from multer
+      if (req.files && req.files.length > 0) {
+        const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+        // Format image paths as a comma-separated string
+        const imageString = imagePaths.join(", ");
+        newNote.image = imageString;
+      }
+      
+      // Find the existing note by ID
+      let note = await SportswearSchema.findById(req.params.id);
       if (!note) {
-        //agar params me id nahi hai to..
         return res.status(404).send("Not Found");
       }
-
-      // //Allow update only id user owns this Note
-      // if (note.user.toString() !== req.user.id) {
-      //   //agar params me id nahi hai to..
-      //   return res.status(401).send("Not Allowed");
-      // }
-
+      
+      // Update the note with new values
       note = await SportswearSchema.findByIdAndUpdate(
         req.params.id,
         { $set: newNote },
         { new: true }
       );
+      if (!note) {
+        return res.status(404).send("Note not found after update");
+      }
+
       res.json({ note });
     } catch (error) {
-      console.error(error);
+      console.error("Error updating Teamwear:", error);
       res.status(500).send("Internal Server Error");
     }
   }
