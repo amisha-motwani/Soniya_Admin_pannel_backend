@@ -221,7 +221,7 @@ router.put("/update/Fitnesswear/:id", getMiddleware, async (req, res) => {
 router.delete("/delete/Fitnesswear/:id", getMiddleware, async (req, res) => {
   try {
     //Extract title, description, tag from req.body by using object destruction
-    const { title, description, tag } = req.body;
+    // const { title, description, tag } = req.body;
 
     //Find the note to be deleted and delete it
     let note = await FitnessSchema.findById(req.params.id); //params me jo id hai
@@ -230,11 +230,11 @@ router.delete("/delete/Fitnesswear/:id", getMiddleware, async (req, res) => {
       return res.status(404).send("Not Found");
     }
 
-    //Allow deletion only id user owns this Note
-    if (note.user.toString() !== req.user.id) {
-      //agar params me id nahi hai to..
-      return res.status(401).send("Not Allowed");
-    }
+    // //Allow deletion only id user owns this Note
+    // if (note.user.toString() !== req.user.id) {
+    //   //agar params me id nahi hai to..
+    //   return res.status(401).send("Not Allowed");
+    // }
 
     note = await FitnessSchema.findByIdAndDelete(req.params.id);
 
