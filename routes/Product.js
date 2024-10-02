@@ -607,4 +607,7 @@ router.get("/fetch/Product/:id", getMiddleware, async (req, res) => {
   }
 });
 
+
+
+
 module.exports = router;
