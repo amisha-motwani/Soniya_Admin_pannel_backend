@@ -471,6 +471,7 @@
 
 
 // ================= New Code ===================
+
 // Import required packages
 const express = require("express");
 const router = express.Router();
@@ -479,7 +480,7 @@ const getMiddleware = require("../middleware/GetMiddleware");
 const ProductSchema = require("../models/Product");
 const multer = require("multer");
 const { S3Client } = require("@aws-sdk/client-s3");
-const { multerS3 } = require("multer-s3");
+const multerS3 = require("multer-s3"); // Correct import for multer-s3
 
 // Create a new S3 client instance
 const s3 = new S3Client({
@@ -606,8 +607,5 @@ router.get("/fetch/Product/:id", getMiddleware, async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
-
-
 
 module.exports = router;
