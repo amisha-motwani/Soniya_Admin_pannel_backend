@@ -513,10 +513,21 @@ const upload = multer({
 //--------------------------------Route 2: To add Product---------------------
 router.post("/add/Product", upload.array("image", 10), async (req, res) => {
   try {
-    const { title, category, description, fabric, price, color, size } = req.body;
+    const {
+      title,
+      category,
+      description,
+      fabric,
+      price,
+      color,
+      sleeves_type,
+      size,
+    } = req.body;
 
-    const imageUrls = req.files.map(file => file.location); // S3 image URLs
+    // Map the uploaded files to their S3 URLs
+    const imageUrls = req.files.map(file => file.location);
 
+    // Create a new product instance
     const product = new ProductSchema({
       title,
       category,
@@ -525,11 +536,12 @@ router.post("/add/Product", upload.array("image", 10), async (req, res) => {
       price,
       color,
       size,
-      image: imageUrls.join(", "), 
+      image: imageUrls.join(", "), // Store image URLs as a comma-separated string
     });
 
+    // Save the product to the database
     const savedProduct = await product.save();
-    res.json(savedProduct);
+    res.json(savedProduct); // Send the saved product as a response
   } catch (error) {
     console.error(error);
     res.status(500).send("Internal Server Error");
