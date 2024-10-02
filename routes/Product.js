@@ -471,46 +471,41 @@
 
 
 // ================= New Code ===================
-const AWS = require("aws-sdk");
-// const multerS3 = require("multer-s3");
-
+// Import required packages
 const express = require("express");
 const router = express.Router();
 const fetchuser = require("../middleware/fetchuser");
 const getMiddleware = require("../middleware/GetMiddleware");
 const ProductSchema = require("../models/Product");
-const { body, validationResult } = require("express-validator");
-// const multer = require("multer");
-const aws = require('aws-sdk');
-const multerS3 = require('multer-s3');
-const multer = require('multer');
+const multer = require("multer");
+const { S3Client } = require("@aws-sdk/client-s3");
+const { multerS3 } = require("multer-s3");
 
-
-// Initialize the S3 client
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+// Create a new S3 client instance
+const s3 = new S3Client({
   region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
+// Configure multer to use multer-s3
 const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.AWS_S3_BUCKET,
     acl: 'public-read',
-    metadata: function (req, file, cb) {
+    metadata: (req, file, cb) => {
       cb(null, { fieldName: file.fieldname });
     },
-    key: function (req, file, cb) {
+    key: (req, file, cb) => {
       cb(null, Date.now().toString() + '-' + file.originalname);
-    }
-  })
+    },
+  }),
 });
 
-
-// const upload = multer({ storage: storage });
-
-//--------------------------------Route 2: To add Product---------------------
+// Route to add a product with image upload
 router.post("/add/Product", upload.array("image", 10), async (req, res) => {
   try {
     const {
@@ -520,7 +515,6 @@ router.post("/add/Product", upload.array("image", 10), async (req, res) => {
       fabric,
       price,
       color,
-      sleeves_type,
       size,
     } = req.body;
 
@@ -548,8 +542,7 @@ router.post("/add/Product", upload.array("image", 10), async (req, res) => {
   }
 });
 
-
-//-------------Route 3 : Update an existing Product---------------
+// Route to update an existing product
 router.put("/update/Product/:id", getMiddleware, upload.array("image", 10), async (req, res) => {
   try {
     const { title, category, description, price, color, fabric, size } = req.body;
@@ -573,10 +566,7 @@ router.put("/update/Product/:id", getMiddleware, upload.array("image", 10), asyn
       return res.status(404).send("Product Not Found");
     }
 
-    product = await ProductSchema.findByIdAndUpdate(
-      req.params.id, { $set: newProduct }, { new: true }
-    );
-
+    product = await ProductSchema.findByIdAndUpdate(req.params.id, { $set: newProduct }, { new: true });
     res.json({ product });
   } catch (error) {
     console.error(error);
@@ -584,9 +574,7 @@ router.put("/update/Product/:id", getMiddleware, upload.array("image", 10), asyn
   }
 });
 
-//----------------------Route 3-----------------------
-//-----this route 3 is to delete the note : "localhost:5000/api/notes/deletenote/:id"
-//----------------------Route 4 : Delete Product-----------------------
+// Route to delete a product
 router.delete("/delete/Product/:id", getMiddleware, async (req, res) => {
   try {
     let product = await ProductSchema.findById(req.params.id);
@@ -602,124 +590,16 @@ router.delete("/delete/Product/:id", getMiddleware, async (req, res) => {
   }
 });
 
-// -------------------------Route 3 : Search------------------------
-// localhost:5000/api/notes/fetchallSearched/Product?category=&Product_code=
-
-// router.get(
-//   "/fetchallSearched/Product",
-//   getMiddleware,
-//   async (req, res) => {
-//     try {
-//       const searchCategory = req.query.category || ""; // Get category from query parameters or set empty string
-//       const searchCode = req.query.Product_code || ""; // Get title from query parameters or set empty string
-
-//       const products = await ProductSchema.find({
-//         $and: [
-//           { category: { $regex: new RegExp(searchCategory, "i") } }, // Case-insensitive search for category
-//           { product_code: { $regex: new RegExp(searchCode, "i") } },       // Case-insensitive search for title
-//         ],
-//       }).sort({ _id: -1 }); // Sort the results by _id in descending order
-
-//       res.json(products);
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send("Internal Server Error");
-//     }
-//   }
-// );
-// 0000
-router.get(
-  "/fetchallSearched/Product",
-  getMiddleware,
-  async (req, res) => {
-    try {
-      const searchCategory = req.query.category || ""; // Get category from query parameters or set empty string
-      const searchCode = req.query .Product_code || ""; // Get Product_code from query parameters or set empty string
-
-      const searchCriteria = {};
-
-      // Add search conditions only if category and Product_code are provided
-      if (searchCategory) {
-        searchCriteria.category = { $regex: new RegExp(searchCategory, "i") }; // Case-insensitive search for category
-      }
-      if (searchCode) {
-        searchCriteria.Product_code = { $regex: new RegExp(searchCode, "i") }; // Case-insensitive search for Product_code
-      }
-
-      const products = await ProductSchema.find(searchCriteria).sort({ _id: -1 }); // Sort the results by _id in descending order
-
-      if (products.length === 0) {
-        return res.status(404).json({ message: "No products found." });
-      }
-
-      res.json(products);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
-    }
-  }
-);
-
-
-
-//  ---------------Route 4: Search and Sort--------------
-//    //SearchAndSort?sort=asc
-//    //SearchAndSort?sort=desc
-//    //SearchAndSort?title=Jeans&sort=asc
-//    //SearchAndSort?title=Jeans&sort=desc
-
-router.get(
-  "/SearchAndSort/Product",
-  fetchuser,
-  getMiddleware,
-  async (req, res) => {
-    try {
-      // Extract the title and sort parameters from the query string
-      const { title, sort } = req.query;
-
-      // Build the filter object based on the title parameter
-      const filter = { user: req.user.id };
-      if (title) {
-        filter.title = title;
-      }
-
-      // Build the sort object based on the sort parameter
-      let sortOption = {};
-      if (sort === "asc") {
-        sortOption = { price: 1 }; // Ascending order
-      } else if (sort === "desc") {
-        sortOption = { price: -1 }; // Descending order
-      }
-
-      // Use the filter and sort objects in the Note.find method
-      const notes = await ProductSchema.find(filter).sort(sortOption);
-
-      // Send the filtered and sorted notes array as a JSON response
-      res.json(notes);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
-    }
-  }
-);
-
-// ----------------------- Route 5 ---------------------------
-// Endpoint to fetch a product by ID
+// Route to fetch a product by ID
 router.get("/fetch/Product/:id", getMiddleware, async (req, res) => {
   try {
-    const { id } = req.params; // Get the ID from the request parameters
-    const product = await ProductSchema.findById(id); // Find the document by ID
-
-    // Check if the product was found
+    const product = await ProductSchema.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-
-    // Return the product if found
     res.json(product);
   } catch (error) {
     console.error(error);
-    // Handle invalid ID format
     if (error.kind === "ObjectId") {
       return res.status(400).json({ message: "Invalid product ID" });
     }
