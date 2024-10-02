@@ -485,59 +485,38 @@ const aws = require('aws-sdk');
 const multerS3 = require('multer-s3');
 const multer = require('multer');
 
+
 // AWS S3 configuration
 aws.config.update({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID, // Ensure this is set in your environment
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // Ensure this is set in your environment
-  region: process.env.AWS_REGION // Region for your S3 bucket (e.g., 'us-east-1')
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
 });
 
 const s3 = new aws.S3();
-
-// Define multer storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + file.originalname);
-  },  
-});
 
 // Configure multer-s3 storage
 const upload = multer({
   storage: multerS3({
     s3: s3,
-    bucket: process.env.AWS_S3_BUCKET, // Make sure this environment variable is set with your S3 bucket name
-    acl: 'public-read', // Set access permissions
+    bucket: process.env.AWS_S3_BUCKET,
+    acl: 'public-read', 
     metadata: function (req, file, cb) {
       cb(null, { fieldName: file.fieldname });
     },
     key: function (req, file, cb) {
-      cb(null, Date.now().toString() + '-' + file.originalname); // Unique filename
+      cb(null, Date.now().toString() + '-' + file.originalname); 
     }
   })
 });
-module.exports = upload;
+
 
 // const upload = multer({ storage: storage });
 
-//--------------------------------Route 2: To add notes---------------------
-//-------------Add a new note using Post request: "localhost:5000/api/notes/addnote"-----------------------
-
+//--------------------------------Route 2: To add Product---------------------
 router.post("/add/Product", upload.array("image", 10), async (req, res) => {
   try {
-    const {
-      title,
-      category,
-      description,
-      fabric,
-      price,
-      color,
-      sleeves_type,
-      size,
-    } = req.body;
+    const { title, category, description, fabric, price, color, size } = req.body;
 
     const imageUrls = req.files.map(file => file.location); // S3 image URLs
 
@@ -549,7 +528,7 @@ router.post("/add/Product", upload.array("image", 10), async (req, res) => {
       price,
       color,
       size,
-      image: imageUrls.join(", "), // Store image URLs as comma-separated string
+      image: imageUrls.join(", "), 
     });
 
     const savedProduct = await product.save();
@@ -561,126 +540,58 @@ router.post("/add/Product", upload.array("image", 10), async (req, res) => {
 });
 
 
-//-------------Route 3 : update and existing note---------------
-//------------"localhost:5000/api/notes/updatenote,/:id"-------------------------
-router.put(
-  "/update/Product/:id",
-  getMiddleware,
-  upload.array("image", 10),
-  async (req, res) => {
-    try {
-      const {
-        title,
-        category,
-        description,
-        price,
-        color,
-        fabric,
-        sleeves_type,
-        Polo_collar,
-        Round_neck,
-        Cloth_collar,
-        Readymade_collar,
-        full_sleeves,
-        half_sleeves,
-        printing_charges,
-        printing_area,
-        Product_code,
-        size,
-      } = req.body;
+//-------------Route 3 : Update an existing Product---------------
+router.put("/update/Product/:id", getMiddleware, upload.array("image", 10), async (req, res) => {
+  try {
+    const { title, category, description, price, color, fabric, size } = req.body;
 
-      const newNote = {};
+    const newProduct = {};
+    if (title) newProduct.title = title;
+    if (category) newProduct.category = category;
+    if (description) newProduct.description = description;
+    if (fabric) newProduct.fabric = fabric;
+    if (price) newProduct.price = price;
+    if (color) newProduct.color = color;
+    if (size) newProduct.size = size;
 
-      if (title) newNote.title = title;
-      if (category) newNote.category = category;
-      if (description) newNote.description = description;
-      if (fabric) newNote.fabric = fabric;
-      if (price) newNote.price = price;
-      if (color) newNote.color = color;
-      if (size) newNote.size = size;
-      if (Polo_collar !== undefined) newNote.Polo_collar = Polo_collar;
-      if (Round_neck !== undefined) newNote.Round_neck = Round_neck;
-      if (Cloth_collar !== undefined) newNote.Cloth_collar = Cloth_collar;
-      if (Readymade_collar !== undefined)
-        newNote.Readymade_collar = Readymade_collar;
-      if (printing_charges !== undefined)
-        newNote.printing_charges = printing_charges;
-      if (printing_area) newNote.printing_area = printing_area;
-      if (full_sleeves !== undefined) newNote.full_sleeves = full_sleeves;
-      if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
-      if (sleeves_type) newNote.sleeves_type = sleeves_type;
-      if (Product_code) newNote.Product_code = Product_code;
-
-      if (req.file) newNote.image = `uploads/${req.file.filename}`;
-
-      // Get the paths of the uploaded files from multer
-      if (req.files && req.files.length > 0) {
-        const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
-        // Format image paths as a comma-separated string
-        const imageString = imagePaths.join(", ");
-        newNote.image = imageString;
-      }
-      
-      // Find the existing note by ID
-      let note = await ProductSchema.findById(req.params.id);
-      if (!note) {
-        return res.status(404).send("Not Found");
-      }
-      
-      // Update the note with new values
-      note = await ProductSchema.findByIdAndUpdate(
-        req.params.id,
-        { $set: newNote },
-        { new: true }
-      );
-      if (!note) {
-        return res.status(404).send("Note not found after update");
-      }
-
-      res.json({ note });
-    } catch (error) {
-      console.error("Error updating Teamwear:", error);
-      res.status(500).send("Internal Server Error");
+    if (req.files && req.files.length > 0) {
+      const imageUrls = req.files.map(file => file.location);
+      newProduct.image = imageUrls.join(", ");
     }
+
+    let product = await ProductSchema.findById(req.params.id);
+    if (!product) {
+      return res.status(404).send("Product Not Found");
+    }
+
+    product = await ProductSchema.findByIdAndUpdate(
+      req.params.id, { $set: newProduct }, { new: true }
+    );
+
+    res.json({ product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
-);
+});
 
 //----------------------Route 3-----------------------
 //-----this route 3 is to delete the note : "localhost:5000/api/notes/deletenote/:id"
-router.delete(
-  "/delete/Product/:id",
-  //  fetchuser,
-  getMiddleware,
-  async (req, res) => {
-    try {
-      //Extract title, description, tag from req.body by using object destruction
-      // const { title, description, tag, image } = req.body;
-
-      //Find the note to be deleted and delete it
-      let note = await ProductSchema.findById(req.params.id); //params me jo id hai
-      if (!note) {
-        //agar params me id nahi hai to..
-        return res.status(404).send("Not Found");
-      }
-
-      //Allow deletion only id user owns this Note
-      // if (note.user.toString() !== req.user.id) {
-      //agar params me id nahi hai to..
-      // return res.status(401).send("Not Allowed");
-      // }
-
-      note = await ProductSchema.findByIdAndDelete(req.params.id);
-
-      res.json({
-        Sucess: "Note has been deleted",
-        note: note,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
+//----------------------Route 4 : Delete Product-----------------------
+router.delete("/delete/Product/:id", getMiddleware, async (req, res) => {
+  try {
+    let product = await ProductSchema.findById(req.params.id);
+    if (!product) {
+      return res.status(404).send("Product Not Found");
     }
+
+    await ProductSchema.findByIdAndDelete(req.params.id);
+    res.json({ Success: "Product has been deleted", product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
-);
+});
 
 // -------------------------Route 3 : Search------------------------
 // localhost:5000/api/notes/fetchallSearched/Product?category=&Product_code=
