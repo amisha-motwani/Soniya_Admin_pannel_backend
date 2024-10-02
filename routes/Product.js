@@ -483,13 +483,15 @@ const { S3Client } = require("@aws-sdk/client-s3");
 const multerS3 = require("multer-s3"); // Correct import for multer-s3
 
 // Create a new S3 client instance
+// Create a new S3 client instance
 const s3 = new S3Client({
-  region: process.env.AWS_REGION,
+  region: process.env.AWS_REGION,  // Make sure this matches your bucket's region
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
-});
+})
+
 
 // Configure multer to use multer-s3
 const upload = multer({
@@ -505,7 +507,6 @@ const upload = multer({
     },
   }),
 });
-
 // Route to add a product with image upload
 router.post("/add/Product", upload.array("image", 10), async (req, res) => {
   try {
