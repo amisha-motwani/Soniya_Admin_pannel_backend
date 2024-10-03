@@ -443,8 +443,6 @@ router.get(
   }
 );
 
-
-
 // ----------------------- Route 5 ---------------------------
 // Endpoint to fetch a product by ID
 router.get("/fetch/Product/:id", getMiddleware, async (req, res) => {
