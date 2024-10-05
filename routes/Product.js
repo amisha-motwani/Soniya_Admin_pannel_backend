@@ -4,20 +4,34 @@ const fetchuser = require("../middleware/fetchuser");
 const getMiddleware = require("../middleware/GetMiddleware");
 const ProductSchema = require("../models/Product");
 const { body, validationResult } = require("express-validator");
-const multer = require("multer");
+const aws = require('aws-sdk');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
 
-// Define multer storage configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    cb(null, uniqueSuffix + file.originalname);
-  },  
+aws.config.update({
+  secretAccessKey: process.env.ACCESS_SECRET,
+  accessKeyId: process.env.ACCESS_KEY,
+  region: process.env.REGION,
+  // Note: 'bucket' is not a valid AWS SDK configuration property
 });
 
-const upload = multer({ storage: storage });
+const BUCKET_NAME = process.env.BUCKET_NAME;
+const s3 = new aws.S3();
+
+const upload = multer({
+  storage: multerS3({
+      s3: s3,
+      bucket: BUCKET_NAME,
+      metadata: function (req, file, cb) {
+          cb(null, {fieldName: file.fieldname});
+        },
+        key: function (req, file, cb) {
+          // cb(null, Date.now().toString())
+          cb(null, file.originalname)
+        }
+  })
+});
+
 
 //......................................Route 1......................................................
 
@@ -38,7 +52,9 @@ const upload = multer({ storage: storage });
 router.post(
   "/add/Product",
   // upload.single("image"),
+  // upload.single('file');
   upload.array("image", 10),
+
   // fetchuser,
   getMiddleware,
   [
@@ -84,7 +100,7 @@ router.post(
       } = req.body;
 
       // Get the paths of the uploaded files from multer
-      const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
+      const imagePaths = req.files.map((file) => file.location); ;
       // Format image paths as a comma-separated string
       const imageString = imagePaths.join(", ");
 
@@ -261,45 +277,40 @@ router.put(
       if (Polo_collar !== undefined) newNote.Polo_collar = Polo_collar;
       if (Round_neck !== undefined) newNote.Round_neck = Round_neck;
       if (Cloth_collar !== undefined) newNote.Cloth_collar = Cloth_collar;
-      if (Readymade_collar !== undefined)
-        newNote.Readymade_collar = Readymade_collar;
-      if (printing_charges !== undefined)
-        newNote.printing_charges = printing_charges;
+      if (Readymade_collar !== undefined) newNote.Readymade_collar = Readymade_collar;
+      if (printing_charges !== undefined) newNote.printing_charges = printing_charges;
       if (printing_area) newNote.printing_area = printing_area;
       if (full_sleeves !== undefined) newNote.full_sleeves = full_sleeves;
       if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
       if (sleeves_type) newNote.sleeves_type = sleeves_type;
       if (Product_code) newNote.Product_code = Product_code;
 
-      if (req.file) newNote.image = `uploads/${req.file.filename}`;
-
       // Get the paths of the uploaded files from multer
       if (req.files && req.files.length > 0) {
         const imagePaths = req.files.map((file) => `uploads/${file.filename}`);
         // Format image paths as a comma-separated string
-        const imageString = imagePaths.join(", ");
-        newNote.image = imageString;
+        newNote.image = imagePaths.join(", ");
       }
-      
-      // Find the existing note by ID
+
+      // Find the existing product by ID
       let note = await ProductSchema.findById(req.params.id);
       if (!note) {
-        return res.status(404).send("Not Found");
+        return res.status(404).send("Product Not Found");
       }
       
-      // Update the note with new values
+      // Update the product with new values
       note = await ProductSchema.findByIdAndUpdate(
         req.params.id,
         { $set: newNote },
         { new: true }
       );
       if (!note) {
-        return res.status(404).send("Note not found after update");
+        return res.status(404).send("Product not found after update");
       }
 
       res.json({ note });
     } catch (error) {
-      console.error("Error updating Teamwear:", error);
+      console.error("Error updating product:", error);
       res.status(500).send("Internal Server Error");
     }
   }
@@ -373,25 +384,26 @@ router.get(
   getMiddleware,
   async (req, res) => {
     try {
-      const searchCategory = req.query.category || ""; // Get category from query parameters or set empty string
-      const searchCode = req.query .Product_code || ""; // Get Product_code from query parameters or set empty string
+      const searchCategory = req.query.category || ""; 
+      const searchCode = req.query.Product_code || ""; 
 
       const searchCriteria = {};
 
-      // Add search conditions only if category and Product_code are provided
       if (searchCategory) {
-        searchCriteria.category = { $regex: new RegExp(searchCategory, "i") }; // Case-insensitive search for category
+        searchCriteria.category = { $regex: new RegExp(searchCategory, "i") };
       }
       if (searchCode) {
-        searchCriteria.Product_code = { $regex: new RegExp(searchCode, "i") }; // Case-insensitive search for Product_code
+        searchCriteria.Product_code = { $regex: new RegExp(searchCode, "i") };
       }
 
-      const products = await ProductSchema.find(searchCriteria).sort({ _id: -1 }); // Sort the results by _id in descending order
+      // Fetch products based on the search criteria
+      const products = await ProductSchema.find(searchCriteria).sort({ _id: -1 });
 
       if (products.length === 0) {
         return res.status(404).json({ message: "No products found." });
       }
 
+      // Send the products as the response, including the image URLs
       res.json(products);
     } catch (error) {
       console.error(error);
@@ -399,9 +411,6 @@ router.get(
     }
   }
 );
-
-
-
 //  ---------------Route 4: Search and Sort--------------
 //    //SearchAndSort?sort=asc
 //    //SearchAndSort?sort=desc
