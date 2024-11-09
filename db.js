@@ -20,7 +20,17 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 //app.use is a middlewere , this line is for if you want to recieve any data from req.body
 app.use(express.json());
-app.use(cors());
+// app.use(cors());
+
+
+// Apply CORS middleware
+app.use(cors({
+  origin: 'https://mktextiles.in', // Replace with your frontend domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Define allowed methods
+  credentials: true, // Enable if you need to include cookies or authentication headers
+}));
+app.use(cors({ origin: '*' }));
+
 
 // const connectToMongodb = async () => {
 //   try {
