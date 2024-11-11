@@ -22,15 +22,6 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json());
 app.use(cors());
 
-// Apply CORS middleware
-// app.use(cors({
-//   origin: 'https://mktextiles.in', // Replace with your frontend domain
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'SEARCH'], // Define allowed methods
-//   credentials: true, // Enable if you need to include cookies or authentication headers
-// }));
-// app.use(cors({ origin: '*' }));
-
-
 // const connectToMongodb = async () => {
 //   try {
 //     // await mongoose.connect(mongoURL, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -75,7 +66,6 @@ app.get('/', (req, res) => {
 
 // New GET API to respond with "Server is running"
 app.get('/server', (req, res) => {
-  console.log("GET request received at /server endpoint");
   res.send("Server is running");
 });
 
