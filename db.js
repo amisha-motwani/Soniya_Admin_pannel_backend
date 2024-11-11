@@ -26,7 +26,7 @@ app.use(express.json());
 // Apply CORS middleware
 app.use(cors({
   origin: 'https://mktextiles.in', // Replace with your frontend domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Define allowed methods
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'SEARCH'], // Define allowed methods
   credentials: true, // Enable if you need to include cookies or authentication headers
 }));
 app.use(cors({ origin: '*' }));
