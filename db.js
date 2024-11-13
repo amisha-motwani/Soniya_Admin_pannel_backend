@@ -84,8 +84,6 @@ app.get('/OponImage', (req, res) => {
   res.send('<h1>Hello</h1><img src="/uploads/1709628404195Screenshot (157).png" alt="Image" />');
 });
 
-
-
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
