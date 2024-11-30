@@ -75,6 +75,7 @@ router.post(
     body("printing_area").optional(),
     body("sleeves_type").optional(),
     body("Product_code").optional(),
+    body("Product_Quantity").optional(),
   ],
   async (req, res) => {
     try {
@@ -96,6 +97,7 @@ router.post(
         printing_charges,
         printing_area,
         Product_code,
+        Product_Quantity,
         size,
       } = req.body;
 
@@ -131,6 +133,7 @@ router.post(
         printing_charges,
         printing_area,
         Product_code,
+        Product_Quantity,
         size,
         // user: req.user.id,
       });
@@ -262,6 +265,7 @@ router.put(
         printing_charges,
         printing_area,
         Product_code,
+        Product_Quantity,
         size,
       } = req.body;
 
@@ -284,6 +288,7 @@ router.put(
       if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
       if (sleeves_type) newNote.sleeves_type = sleeves_type;
       if (Product_code) newNote.Product_code = Product_code;
+      if (Product_Quantity) newNote.Product_Quantity = Product_Quantity;
 
       // Get the paths of the uploaded files from multer
       if (req.files && req.files.length > 0) {
@@ -318,75 +323,84 @@ router.put(
 
 //----------------------Route 3-----------------------
 //-----this route 3 is to delete the note : "localhost:5000/api/notes/deletenote/:id"
-router.delete("/delete/Product/:id", getMiddleware, async (req, res) => {
-  try {
-    // Find the product by ID
-    const product = await ProductSchema.findById(req.params.id);
-    if (!product) {
-      return res.status(404).send("Product not found");
-    }
 
-    // Extract image keys (assuming `product.image` is a comma-separated string of S3 keys)
-    const imageKeys = product.image.split(", ");
-
-    // Delete each image from S3
-    const deletePromises = imageKeys.map((key) => {
-      const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: key, // S3 object key for the image
-      };
-      return s3.deleteObject(params).promise();
-    });
-
-    // Wait for all delete operations to complete
-    await Promise.all(deletePromises);
-
-    // Delete product from the databaseA
-    await ProductSchema.findByIdAndDelete(req.params.id);
-
-    res.json({
-      Success: "Product and associated images have been deleted",
-      product: product,
-    });
-  } catch (error) {
-    console.error("Error deleting product or images:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
-// router.delete(
-//   "/delete/Product/:id",
-//   //  fetchuser,
-//   getMiddleware,
-//   async (req, res) => {
-//     try {
-//       //Extract title, description, tag from req.body by using object destruction
-//       // const { title, description, tag, image } = req.body;
-
-//       //Find the note to be deleted and delete it
-//       let note = await ProductSchema.findById(req.params.id); //params me jo id hai
-//       if (!note) {
-//         //agar params me id nahi hai to..
-//         return res.status(404).send("Not Found");
-//       }
-
-//       //Allow deletion only id user owns this Note
-//       // if (note.user.toString() !== req.user.id) {
-//       //agar params me id nahi hai to..
-//       // return res.status(401).send("Not Allowed");
-//       // }
-
-//       note = await ProductSchema.findByIdAndDelete(req.params.id);
-
-//       res.json({
-//         Sucess: "Note has been deleted",
-//         note: note,
-//       });
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send("Internal Server Error");
+// router.delete("/delete/Product/:id", getMiddleware, async (req, res) => {
+//   try {
+//     // Find the product by ID
+//     const product = await ProductSchema.findById(req.params.id);
+//     if (!product) {
+//       console.log("Product not found");
+//       return res.status(404).send("Product not found");
 //     }
+
+//     // Extract image keys (assuming `product.image` is a comma-separated string of S3 keys)
+//     const imageKeys = product.image.split(", ");
+//     console.log("Image keys to delete:", imageKeys);
+
+//     // Delete each image from S3
+//     const deletePromises = imageKeys.map((key) => {
+//       const params = {
+//         Bucket: BUCKET_NAME,
+//         Key: process.env.ACCESS_KEY
+//       };
+//       console.log(`Deleting image with key: ${key}`);
+//       return s3.deleteObject(params).promise();
+//     });
+
+//     // Wait for all delete operations to complete
+//     await Promise.all(deletePromises).catch((error) => {
+//       console.error("Error deleting images from S3:", error);
+//       throw error;
+//     });
+
+//     // Delete product from the database
+//     await ProductSchema.findByIdAndDelete(req.params.id);
+//     console.log("Product deleted from database");
+
+//     res.json({
+//       Success: "Product and associated images have been deleted",
+//       product: product,
+//     });
+//   } catch (error) {
+//     console.error("Error deleting product or images:", error);
+//     res.status(500).send("Internal Server Error");
 //   }
-// );
+// });
+
+router.delete(
+  "/delete/Product/:id",
+  //  fetchuser,
+  getMiddleware,
+  async (req, res) => {
+    try {
+      //Extract title, description, tag from req.body by using object destruction
+      // const { title, description, tag, image } = req.body;
+
+      //Find the note to be deleted and delete it
+      let note = await ProductSchema.findById(req.params.id); //params me jo id hai
+      if (!note) {
+        //agar params me id nahi hai to..
+        return res.status(404).send("Not Found");
+      }
+
+      //Allow deletion only id user owns this Note
+      // if (note.user.toString() !== req.user.id) {
+      //agar params me id nahi hai to..
+      // return res.status(401).send("Not Allowed");
+      // }
+
+      note = await ProductSchema.findByIdAndDelete(req.params.id);
+
+      res.json({
+        Sucess: "Note has been deleted",
+        note: note,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
 
 // -------------------------Route 3 : Search------------------------
 // localhost:5000/api/notes/fetchallSearched/Product?category=&Product_code=
