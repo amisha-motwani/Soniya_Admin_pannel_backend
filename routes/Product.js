@@ -137,9 +137,9 @@ router.post(
         size,
         // user: req.user.id,
       });
-      console.log("This is my response", savedNote);
       // Save the new Teamwork entry to the database
       const savedNote = await note.save();
+      console.log("This is my response", savedNote);
 
       // Return the saved note as the response
       res.json(savedNote);
