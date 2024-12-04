@@ -4,9 +4,9 @@ const fetchuser = require("../middleware/fetchuser");
 const getMiddleware = require("../middleware/GetMiddleware");
 const ProductSchema = require("../models/Product");
 const { body, validationResult } = require("express-validator");
-const aws = require('aws-sdk');
-const multer = require('multer');
-const multerS3 = require('multer-s3');
+const aws = require("aws-sdk");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
 
 aws.config.update({
   secretAccessKey: process.env.ACCESS_SECRET,
@@ -20,18 +20,17 @@ const s3 = new aws.S3();
 
 const upload = multer({
   storage: multerS3({
-      s3: s3,
-      bucket: BUCKET_NAME,
-      metadata: function (req, file, cb) {
-          cb(null, {fieldName: file.fieldname});
-        },
-        key: function (req, file, cb) {
-          // cb(null, Date.now().toString())
-          cb(null, file.originalname)
-        }
-  })
+    s3: s3,
+    bucket: BUCKET_NAME,
+    metadata: function (req, file, cb) {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: function (req, file, cb) {
+      // cb(null, Date.now().toString())
+      cb(null, file.originalname);
+    },
+  }),
 });
-
 
 //......................................Route 1......................................................
 
@@ -44,7 +43,6 @@ const upload = multer({
 //     res.status(500).send("Internal Server Error");
 //   }
 // });
-
 
 //--------------------------------Route 2: To add notes---------------------
 //-------------Add a new note using Post request: "localhost:5000/api/notes/addnote"-----------------------
@@ -60,7 +58,8 @@ router.post(
   [
     body("title", "Enter a valid title").isLength({ min: 3 }),
     body("category", "Enter category").isLength({ min: 3 }),
-    body("fabric", "Please enter fabric").isLength({ min: 1 }),body("title", "Enter a valid title").isLength({ min: 3 }),
+    body("fabric", "Please enter fabric").isLength({ min: 1 }),
+    body("title", "Enter a valid title").isLength({ min: 3 }),
     body("description", "description must be atleast 5 characters").isLength({
       min: 5,
     }),
@@ -100,9 +99,10 @@ router.post(
         Product_Quantity,
         size,
       } = req.body;
+      console.log("this is my request body ", req.body);
 
       // Get the paths of the uploaded files from multer
-      const imagePaths = req.files.map((file) => file.location); ;
+      const imagePaths = req.files.map((file) => file.location);
       // Format image paths as a comma-separated string
       const imageString = imagePaths.join(", ");
 
@@ -137,7 +137,7 @@ router.post(
         size,
         // user: req.user.id,
       });
-
+      console.log("This is my response", savedNote);
       // Save the new Teamwork entry to the database
       const savedNote = await note.save();
 
@@ -239,7 +239,6 @@ router.post(
 //   }
 // );
 
-
 //-------------Route 3 : update and existing note---------------
 //------------"localhost:5000/api/notes/updatenote,/:id"-------------------------
 router.put(
@@ -281,8 +280,10 @@ router.put(
       if (Polo_collar !== undefined) newNote.Polo_collar = Polo_collar;
       if (Round_neck !== undefined) newNote.Round_neck = Round_neck;
       if (Cloth_collar !== undefined) newNote.Cloth_collar = Cloth_collar;
-      if (Readymade_collar !== undefined) newNote.Readymade_collar = Readymade_collar;
-      if (printing_charges !== undefined) newNote.printing_charges = printing_charges;
+      if (Readymade_collar !== undefined)
+        newNote.Readymade_collar = Readymade_collar;
+      if (printing_charges !== undefined)
+        newNote.printing_charges = printing_charges;
       if (printing_area) newNote.printing_area = printing_area;
       if (full_sleeves !== undefined) newNote.full_sleeves = full_sleeves;
       if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
@@ -302,7 +303,7 @@ router.put(
       if (!note) {
         return res.status(404).send("Product Not Found");
       }
-      
+
       // Update the product with new values
       note = await ProductSchema.findByIdAndUpdate(
         req.params.id,
@@ -428,38 +429,34 @@ router.delete(
 //   }
 // );
 // 0000
-router.get(
-  "/fetchallSearched/Product",
-  getMiddleware,
-  async (req, res) => {
-    try {
-      const searchCategory = req.query.category || ""; 
-      const searchCode = req.query.Product_code || ""; 
+router.get("/fetchallSearched/Product", getMiddleware, async (req, res) => {
+  try {
+    const searchCategory = req.query.category || "";
+    const searchCode = req.query.Product_code || "";
 
-      const searchCriteria = {};
+    const searchCriteria = {};
 
-      if (searchCategory) {
-        searchCriteria.category = { $regex: new RegExp(searchCategory, "i") };
-      }
-      if (searchCode) {
-        searchCriteria.Product_code = { $regex: new RegExp(searchCode, "i") };
-      }
-
-      // Fetch products based on the search criteria
-      const products = await ProductSchema.find(searchCriteria).sort({ _id: -1 });
-
-      if (products.length === 0) {
-        return res.status(404).json({ message: "No products found." });
-      }
-
-      // Send the products as the response, including the image URLs
-      res.json(products);
-    } catch (error) {
-      console.error(error);
-      res.status(500).send("Internal Server Error");
+    if (searchCategory) {
+      searchCriteria.category = { $regex: new RegExp(searchCategory, "i") };
     }
+    if (searchCode) {
+      searchCriteria.Product_code = { $regex: new RegExp(searchCode, "i") };
+    }
+
+    // Fetch products based on the search criteria
+    const products = await ProductSchema.find(searchCriteria).sort({ _id: -1 });
+
+    if (products.length === 0) {
+      return res.status(404).json({ message: "No products found." });
+    }
+
+    // Send the products as the response, including the image URLs
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
-);
+});
 //  ---------------Route 4: Search and Sort--------------
 //    //SearchAndSort?sort=asc
 //    //SearchAndSort?sort=desc
@@ -526,4 +523,3 @@ router.get("/fetch/Product/:id", getMiddleware, async (req, res) => {
 });
 
 module.exports = router;
-
