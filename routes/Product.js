@@ -139,7 +139,7 @@ router.post(
       });
       // Save the new Teamwork entry to the database
       const savedNote = await note.save();
-      console.log("This is my response, check it", savedNote);
+      console.log("This is my response, check", savedNote);
 
       // Return the saved note as the response
       res.json(savedNote);
@@ -149,95 +149,6 @@ router.post(
     }
   }
 );
-// router.post(
-//   "/add/Product",
-//   upload.array("image", 10),
-//   [
-//     // Validation checks
-//     body("title", "Enter a valid title").isLength({ min: 3 }),
-//     body("category", "Enter category").isLength({ min: 3 }),
-//     body("fabric", "Please enter fabric").isLength({ min: 1 }),
-//     body("description", "Description must be at least 5 characters").isLength({ min: 5 }),
-//     body("size", "Please choose any size").isLength({ min: 1 }),
-//     body("price", "Enter a price").isLength({ min: 1 }),
-//     body("color", "Please choose at least 1 color").isLength({ min: 3 }),
-//     body("Polo_collar").optional(),
-//     body("Round_neck").optional(),
-//     body("Cloth_collar").optional(),
-//     body("Readymade_collar").optional(),
-//     body("printing_charges").optional(),
-//     body("printing_area").optional(),
-//     body("sleeves_type").optional(),
-//     body("Product_code").optional(),
-//   ],
-//   async (req, res) => {
-//     try {
-//       const {
-//         title,
-//         category,
-//         description,
-//         fabric,
-//         price,
-//         color,
-//         sleeves_type,
-//         Polo_collar,
-//         Round_neck,
-//         Cloth_collar,
-//         Readymade_collar,
-//         full_sleeves,
-//         half_sleeves,
-//         printing_charges,
-//         printing_area,
-//         Product_code,
-//         size,
-//       } = req.body;
-
-//       // Ensure that files were uploaded
-//       let imagePaths = [];
-//       if (req.files) {
-//         imagePaths = req.files.map((file) => `uploads/${file.filename}`);
-//       } else {
-//         return res.status(400).json({ error: "No files uploaded" });
-//       }
-
-//       // Check for validation errors
-//       const errors = validationResult(req);
-//       if (!errors.isEmpty()) {
-//         return res.status(400).json({
-//           errors: errors.array(),
-//         });
-//       }
-
-//       // Create a new product document
-//       const product = new ProductSchema({
-//         title,
-//         category,
-//         description,
-//         price,
-//         color,
-//         fabric,
-//         image: imagePaths.join(", "),
-//         sleeves_type,
-//         Polo_collar,
-//         Round_neck,
-//         Cloth_collar,
-//         Readymade_collar,
-//         full_sleeves,
-//         half_sleeves,
-//         printing_charges,
-//         printing_area,
-//         Product_code,
-//         size,
-//       });
-
-//       const savedProduct = await product.save();
-//       res.json(savedProduct);
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).send("Internal Server Error");
-//     }
-//   }
-// );
 
 //-------------Route 3 : update and existing note---------------
 //------------"localhost:5000/api/notes/updatenote,/:id"-------------------------
@@ -289,7 +200,9 @@ router.put(
       if (half_sleeves !== undefined) newNote.half_sleeves = half_sleeves;
       if (sleeves_type) newNote.sleeves_type = sleeves_type;
       if (Product_code) newNote.Product_code = Product_code;
-      if (Product_Quantity) newNote.Product_Quantity = Product_Quantity;
+      // if (Product_Quantity) newNote.Product_Quantity = Product_Quantity;
+      if (Product_Quantity !== undefined) newNote.Product_Quantity = Product_Quantity;
+
 
       // Get the paths of the uploaded files from multer
       if (req.files && req.files.length > 0) {
@@ -297,6 +210,8 @@ router.put(
         // Format image paths as a comma-separated string
         newNote.image = imagePaths.join(", ");
       }
+
+      console.log("Updated Fields (newNote):", newNote);
 
       // Find the existing product by ID
       let note = await ProductSchema.findById(req.params.id);
@@ -313,8 +228,10 @@ router.put(
       if (!note) {
         return res.status(404).send("Product not found after update");
       }
-
-      res.json({ note });
+      console.log("Updated Product:", note);
+      return res.json({ note });
+      // res.json({ note });
+      // console.log("this is updated response", res.json({ note }) )
     } catch (error) {
       console.error("Error updating product:", error);
       res.status(500).send("Internal Server Error");
