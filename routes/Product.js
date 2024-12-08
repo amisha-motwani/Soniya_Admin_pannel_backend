@@ -201,8 +201,8 @@ router.put(
       if (sleeves_type) newNote.sleeves_type = sleeves_type;
       if (Product_code) newNote.Product_code = Product_code;
       // if (Product_Quantity) newNote.Product_Quantity = Product_Quantity;
-      if (Product_Quantity !== undefined) newNote.Product_Quantity = Product_Quantity;
-
+      if (Product_Quantity !== undefined)
+        newNote.Product_Quantity = Product_Quantity;
 
       // Get the paths of the uploaded files from multer
       if (req.files && req.files.length > 0) {

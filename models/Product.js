@@ -66,7 +66,7 @@ const NotesSchema = new Schema({
     index: true
   },
   Product_Quantity: {
-    type: Number,
+    type: String,
     index: true
   },
   date: {
